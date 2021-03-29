@@ -32,11 +32,11 @@ namespace SlabProjectAPI
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SlabProjectAPI", Version = "v1" });
             });
             services.Configure<JwtConfig>(Configuration.GetSection("JwtConfig"));
-
             services.AddDbContext<ProjectDbContext>(options =>
                 options.UseSqlite(
                     Configuration.GetConnectionString("DefaultConnection")));
 
+            
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -60,7 +60,8 @@ namespace SlabProjectAPI
                 });
 
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                            .AddEntityFrameworkStores<ProjectDbContext>();
+                .AddRoles<IdentityRole>()                
+                .AddEntityFrameworkStores<ProjectDbContext>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

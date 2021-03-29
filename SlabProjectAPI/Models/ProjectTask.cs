@@ -5,13 +5,12 @@ using System.Threading.Tasks;
 
 namespace SlabProjectAPI.Models
 {
-    public class Project
+    public class ProjectTask
     {
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime FinishDate { get; set; }
-        public virtual List<ProjectTask> Tasks { get; set; }
+        public DateTime ExecutionDate { get; set; }
+        public virtual List<Project> Projects { get; set; }
     }
 }

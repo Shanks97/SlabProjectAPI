@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SlabProjectAPI.Configuration
+namespace SlabProjectAPI.Domain.Responses
 {
-    public class JwtConfig
+    public class RegistrationResponse : AuthResult
     {
-        public string Secret { get; set; }
     }
 }
