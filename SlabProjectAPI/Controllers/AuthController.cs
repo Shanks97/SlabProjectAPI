@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +24,6 @@ namespace SlabProjectAPI.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    [AllowAnonymous]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -42,13 +42,14 @@ namespace SlabProjectAPI.Controllers
 
         [HttpPost]
         [Route("Register")]
-        public async Task<IActionResult> Register([FromBody] UserRegistrationRequest user, bool registerAsAdmin = false)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.Admin)]
+        public async Task<IActionResult> Register([FromBody] UserRegistrationRequest user)
         {
             await EnsureBasicRoles();
 
             if (ModelState.IsValid)
             {
-                var result = await _authService.RegisterUser(user, registerAsAdmin);
+                var result = await _authService.RegisterUser(user);
                 if (result.Result)
                     return Ok(result);
                 else
@@ -66,6 +67,7 @@ namespace SlabProjectAPI.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [Route("Login")]
         public async Task<IActionResult> Login([FromBody] UserLoginRequest user)
         {

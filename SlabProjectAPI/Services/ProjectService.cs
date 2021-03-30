@@ -9,7 +9,6 @@ using SlabProjectAPI.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace SlabProjectAPI.Services
 {
@@ -28,36 +27,82 @@ namespace SlabProjectAPI.Services
 
         public BaseRequestResponse<bool> CompleteProject(int id)
         {
-            var project = _dbContext.Projects.FirstOrDefault(x => x.Id == id);
+            var project = _dbContext.Projects.Include(x => x.Tasks).FirstOrDefault(x => x.Id == id);
             if (project != null)
             {
+                if(project.Tasks.Any(x => x.ExecutionDate > DateTime.Now))
+                {
+                    return new BaseRequestResponse<bool>()
+                    {
+                        Errors = new List<string>()
+                        {
+                            "Some tasks didn't executed yet"
+                        }
+                    };
+                }
+
                 if (project.Status == StatusConstants.InProcess)
                 {
-                    //TODO: check with tasks
+                    project.Status = StatusConstants.Done;
+                    _dbContext.Update(project);
+                    _dbContext.SaveChanges();
                     return new BaseRequestResponse<bool>()
                     {
                         Success = true,
+                        Data = true,
+                    };
+                 
+                }
+                else
+                {
+                    return new BaseRequestResponse<bool>()
+                    {
+                        Success = false,
+                        Errors = new List<string>()
+                        {
+                            "Project is already completed"
+                        }
                     };
                 }
             }
             return new BaseRequestResponse<bool>()
             {
                 Success = false,
+                Errors = new List<string>()
+                {
+                    "Cannot complete project with id: " + id
+                }
             };
-        }
-
-        public BaseRequestResponse<bool> CompleteTask(int id)
-        {
-            throw new NotImplementedException();
         }
 
         public BaseRequestResponse<Project> CreateProject(CreateProjectRequest createProjectRequest)
         {
             try
             {
+                var date = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+                if (createProjectRequest.StartDate < date)
+                    return new BaseRequestResponse<Project>()
+                    {
+                        Data = null,
+                        Success = false,
+                        Errors = new List<string>()
+                        {
+                            "StartDate is less than the actual DateTime"
+                        }
+                    };
+                if (createProjectRequest.FinishDate <= createProjectRequest.StartDate)
+                    return new BaseRequestResponse<Project>()
+                    {
+                        Data = null,
+                        Success = false,
+                        Errors = new List<string>()
+                        {
+                            "Finish Date must be greater than Start Date"
+                        }
+                    };
+
                 var project = _mapper.Map<Project>(createProjectRequest);
                 project.Status = StatusConstants.InProcess;
-
                 var entity = _dbContext.Projects.Add(project).Entity;
                 _dbContext.SaveChanges();
                 return new BaseRequestResponse<Project>()
@@ -163,13 +208,26 @@ namespace SlabProjectAPI.Services
 
         public BaseRequestResponse<bool> EditProject(EditProjectRequest editProjectRequest)
         {
-            var project = _dbContext.Projects.FirstOrDefault(x => x.Id == editProjectRequest.Id);
-            if(project == null)
+            var project = _dbContext.Projects.Include(x => x.Tasks).FirstOrDefault(x => x.Id == editProjectRequest.Id);
+
+            if(project != null)
             {
+                if(project.Tasks.Any(x => x.ExecutionDate > editProjectRequest.FinishDate))
+                {
+                    return new BaseRequestResponse<bool>()
+                    {
+                        Errors = new List<string>()
+                        {
+                            "Some Tasks have an execution time greater than the new Finish Date"
+                        }
+                    };
+                }
+
                 project.Name = string.IsNullOrEmpty(editProjectRequest.Name) ? project.Name : editProjectRequest.Name;
                 project.Description = string.IsNullOrEmpty(editProjectRequest.Description) ? project.Description : editProjectRequest.Description;
                 project.FinishDate = editProjectRequest.FinishDate.HasValue ? editProjectRequest.FinishDate.Value : project.FinishDate;
                 _dbContext.Update(project);
+                _dbContext.SaveChanges();
                 return new BaseRequestResponse<bool>()
                 {
                     Data = true,
@@ -193,12 +251,13 @@ namespace SlabProjectAPI.Services
         public BaseRequestResponse<bool> EditTask(EditTaskRequest editTaskRequest)
         {
             var task = _dbContext.Tasks.FirstOrDefault(x => x.Id == editTaskRequest.Id);
-            if (task == null)
+            if (task != null)
             {
                 task.Name = string.IsNullOrEmpty(editTaskRequest.Name) ? task.Name : editTaskRequest.Name;
                 task.Description = string.IsNullOrEmpty(editTaskRequest.Description) ? task.Description : editTaskRequest.Description;
                 task.ExecutionDate = editTaskRequest.ExecutionDate.HasValue ? editTaskRequest.ExecutionDate.Value : task.ExecutionDate;
                 _dbContext.Update(task);
+                _dbContext.SaveChanges();
                 return new BaseRequestResponse<bool>()
                 {
                     Data = true,
@@ -221,7 +280,7 @@ namespace SlabProjectAPI.Services
 
         public BaseRequestResponse<Project> GetProject(int id)
         {
-            var project = _dbContext.Projects.Include(x => x.Tasks).FirstOrDefault(x => x.Id == id);
+            var project = _dbContext.Projects.Include(x => x.Tasks).AsNoTracking().FirstOrDefault(x => x.Id == id);
             if(project != null)
             {
                 return new BaseRequestResponse<Project>()
@@ -268,7 +327,7 @@ namespace SlabProjectAPI.Services
 
         public BaseRequestResponse<ProjectTask> GetTask(int id)
         {
-            var task = _dbContext.Tasks.Include(x => x.Project).FirstOrDefault(x => x.Id == id);
+            var task = _dbContext.Tasks.Include(x => x.Project).AsNoTracking().FirstOrDefault(x => x.Id == id);
             if (task != null)
             {
                 return new BaseRequestResponse<ProjectTask>()

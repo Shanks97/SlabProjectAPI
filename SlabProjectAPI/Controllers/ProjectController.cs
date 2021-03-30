@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace SlabProjectAPI.Controllers
 {
     [ApiController]
-    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = Constants.RoleConstants.Operator)]
     [Route("[controller]")]
     public class ProjectController : ControllerBase
     {

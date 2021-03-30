@@ -139,7 +139,7 @@ namespace SlabProjectAPI.Services
             }
         }
 
-        public async Task<AuthResult> RegisterUser(UserRegistrationRequest request, bool registerAsAdmin = false)
+        public async Task<AuthResult> RegisterUser(UserRegistrationRequest request)
         {
             //EMAIL VALIDATOR
             var existingUser = await _userManager.FindByEmailAsync(request.UserName);
@@ -174,7 +174,7 @@ namespace SlabProjectAPI.Services
 
             if (isCreated.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user1, registerAsAdmin ? RoleConstants.Admin : RoleConstants.Operator);
+                await _userManager.AddToRoleAsync(user1, RoleConstants.Operator);
                 _projectDbContext.UsersInformation.Add(new Models.User
                 {
                     Enabled = true,

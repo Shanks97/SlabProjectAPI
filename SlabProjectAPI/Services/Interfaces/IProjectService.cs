@@ -20,7 +20,6 @@ namespace SlabProjectAPI.Services.Interfaces
         BaseRequestResponse<ProjectTask> CreateTask(CreateTaskRequest editTaskRequest);
         BaseRequestResponse<bool> EditTask(EditTaskRequest editTaskRequest);
         BaseRequestResponse<bool> DeleteTask(int id);
-        BaseRequestResponse<bool> CompleteTask(int id);
         BaseRequestResponse<ProjectTask> GetTask(int id);
         BaseRequestResponse<List<ProjectTask>> GetTasks();
 

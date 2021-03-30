@@ -10,7 +10,7 @@ namespace SlabProjectAPI.Services.Interfaces
 {
     public interface IAuthService
     {
-        Task<AuthResult> RegisterUser(UserRegistrationRequest request, bool registerAsAdmin = false);
+        Task<AuthResult> RegisterUser(UserRegistrationRequest request);
         Task<AuthResult> Login(UserLoginRequest request);
         Task<BaseRequestResponse<bool>> SwitchOperatorAuthentication(string email);
         Task<ChangePasswordResponse> ChangePassword(ChangePasswordRequest changePasswordRequest);
