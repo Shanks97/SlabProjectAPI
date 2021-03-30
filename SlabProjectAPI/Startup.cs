@@ -72,6 +72,10 @@ namespace SlabProjectAPI
                 mc.AddProfile(new ProjectTaskProfile());
             });
 
+            services.AddControllers().AddNewtonsoftJson(options =>
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore 
+            );
+
             services.AddSingleton(mapperConfig.CreateMapper());
 
             services.AddScoped<IAuthService, AuthService>();

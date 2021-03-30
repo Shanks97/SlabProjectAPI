@@ -51,26 +51,27 @@ namespace SlabProjectAPI.Services
             throw new NotImplementedException();
         }
 
-        public BaseRequestResponse<bool> CreateProject(CreateProjectRequest createProjectRequest)
+        public BaseRequestResponse<Project> CreateProject(CreateProjectRequest createProjectRequest)
         {
             try
             {
                 var project = _mapper.Map<Project>(createProjectRequest);
+                project.Status = StatusConstants.InProcess;
 
-                _dbContext.Projects.Add(project);
+                var entity = _dbContext.Projects.Add(project).Entity;
                 _dbContext.SaveChanges();
-                return new BaseRequestResponse<bool>()
+                return new BaseRequestResponse<Project>()
                 {
                     Success = true,
-                    Data = true,
+                    Data = entity,
                 };
             }
             catch
             {
-                return new BaseRequestResponse<bool>()
+                return new BaseRequestResponse<Project>()
                 {
                     Success = false,
-                    Data = false,
+                    Data = null,
                     Errors = new List<string>()
                     {
                         "Error while creating the project"
@@ -79,25 +80,25 @@ namespace SlabProjectAPI.Services
             }
         }
 
-        public BaseRequestResponse<bool> CreateTask(CreateTaskRequest createTaskRequest)
+        public BaseRequestResponse<ProjectTask> CreateTask(CreateTaskRequest createTaskRequest)
         {
             try
             {
                 var project = _mapper.Map<ProjectTask>(createTaskRequest);
-                _dbContext.Tasks.Add(project);
+                var entity = _dbContext.Tasks.Add(project).Entity;
                 _dbContext.SaveChanges();
-                return new BaseRequestResponse<bool>()
+                return new BaseRequestResponse<ProjectTask>()
                 {
                     Success = true,
-                    Data = true,
+                    Data = entity,
                 };
             }
             catch
             {
-                return new BaseRequestResponse<bool>()
+                return new BaseRequestResponse<ProjectTask>()
                 {
                     Success = false,
-                    Data = false,
+                    Data = null,
                     Errors = new List<string>()
                     {
                         "Error while creating the task"
@@ -220,7 +221,7 @@ namespace SlabProjectAPI.Services
 
         public BaseRequestResponse<Project> GetProject(int id)
         {
-            var project = _dbContext.Projects.FirstOrDefault(x => x.Id == id);
+            var project = _dbContext.Projects.Include(x => x.Tasks).FirstOrDefault(x => x.Id == id);
             if(project != null)
             {
                 return new BaseRequestResponse<Project>()
@@ -267,7 +268,7 @@ namespace SlabProjectAPI.Services
 
         public BaseRequestResponse<ProjectTask> GetTask(int id)
         {
-            var task = _dbContext.Tasks.FirstOrDefault(x => x.Id == id);
+            var task = _dbContext.Tasks.Include(x => x.Project).FirstOrDefault(x => x.Id == id);
             if (task != null)
             {
                 return new BaseRequestResponse<ProjectTask>()
