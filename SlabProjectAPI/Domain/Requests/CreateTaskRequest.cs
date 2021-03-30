@@ -13,6 +13,8 @@ namespace SlabProjectAPI.Domain.Requests
         [Required]
         public string Description { get; set; }
         [Required]
-        public DateTime ExecutionTime { get; set; }
+        public int ProjectId { get; set; }
+        [Required]
+        public DateTime ExecutionDate { get; set; }
     }
 }

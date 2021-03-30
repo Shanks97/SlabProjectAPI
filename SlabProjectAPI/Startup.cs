@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -10,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SlabProjectAPI.Configuration;
 using SlabProjectAPI.Data;
+using SlabProjectAPI.Mapper;
 using SlabProjectAPI.Services;
 using SlabProjectAPI.Services.Interfaces;
 using System.Text;
@@ -64,6 +66,13 @@ namespace SlabProjectAPI
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ProjectDbContext>();
 
+            var mapperConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new ProjectProfile());
+                mc.AddProfile(new ProjectTaskProfile());
+            });
+
+            services.AddSingleton(mapperConfig.CreateMapper());
 
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IProjectService, ProjectService>();

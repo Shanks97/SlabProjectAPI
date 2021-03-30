@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SlabProjectAPI.Domain.Requests
+namespace SlabProjectAPI.Models
 {
-    public class EditProjectRequest
+    public class ProjectTaskInfo
     {
-        [Required]
         public int Id { get; set; }
+        public int ProjectId { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        [DataType(DataType.Date)]
-        public DateTime? FinishDate { get; set; }
+        public DateTime ExecutionDate { get; set; }
     }
 }
