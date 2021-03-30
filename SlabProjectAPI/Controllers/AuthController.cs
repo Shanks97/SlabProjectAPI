@@ -40,6 +40,11 @@ namespace SlabProjectAPI.Controllers
             _roleManager = roleManager;
         }
 
+        /// <summary>
+        /// Admin can register new users as Operator User
+        /// </summary>
+        /// <param name="user">The user's email</param>
+        /// <returns></returns>
         [HttpPost]
         [Route("Register")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.Admin)]
@@ -66,6 +71,11 @@ namespace SlabProjectAPI.Controllers
             });
         }
 
+        /// <summary>
+        /// Anonymous User Login
+        /// </summary>
+        /// <param name="user">Model to request the Login</param>
+        /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
         [Route("Login")]
@@ -90,7 +100,24 @@ namespace SlabProjectAPI.Controllers
             });
         }
 
-    
+        /// <summary>
+        /// Admin can disable/enable the login for an Operator User by using the respective email
+        /// </summary>
+        /// <param name="email">Operator's email</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("SwitchOperatorStatus")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.Admin)]
+        public async Task<IActionResult> SwitchEnableStatusForOperator(string email)
+        {
+            var result = await _authService.SwitchOperatorAuthentication(email);
+            if (result.Success)
+                return Ok(result);
+            else
+                return BadRequest(result);
+        }
+
+
         private async Task EnsureBasicRoles()
         {
             var roles = new List<string>() { RoleConstants.Admin, RoleConstants.Operator };

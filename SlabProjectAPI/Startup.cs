@@ -14,6 +14,9 @@ using SlabProjectAPI.Data;
 using SlabProjectAPI.Mapper;
 using SlabProjectAPI.Services;
 using SlabProjectAPI.Services.Interfaces;
+using System;
+using System.IO;
+using System.Reflection;
 using System.Text;
 
 namespace SlabProjectAPI
@@ -31,14 +34,22 @@ namespace SlabProjectAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "SlabProjectAPI", Version = "v1" });
+             services.AddSwaggerGen(c => { //<-- NOTE 'Add' instead of 'Configure'
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "SlabCode API",
+                    Version = "v1"
+                });
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
             services.Configure<JwtConfig>(Configuration.GetSection("JwtConfig"));
             services.AddDbContext<ProjectDbContext>(options =>
                 options.UseSqlite(
                     Configuration.GetConnectionString("DefaultConnection")));
+
+           
 
             services.AddAuthentication(options =>
             {
@@ -90,6 +101,11 @@ namespace SlabProjectAPI
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "SlabProjectAPI v1"));
             }
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Juan API Challenge");
+            });
 
             app.UseHttpsRedirection();
 

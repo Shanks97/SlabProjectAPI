@@ -129,8 +129,30 @@ namespace SlabProjectAPI.Services
         {
             try
             {
-                var project = _mapper.Map<ProjectTask>(createTaskRequest);
-                var entity = _dbContext.Tasks.Add(project).Entity;
+                var project = _dbContext.Projects.FirstOrDefault(x => x.Id == createTaskRequest.ProjectId);
+                if(project == null)
+                {
+                    return new BaseRequestResponse<ProjectTask>()
+                    {
+                        Errors = new List<string>()
+                        {
+                            $"No projects with id: ${createTaskRequest.ProjectId} "
+                        }
+                    };
+                }
+                if (createTaskRequest.ExecutionDate < project.StartDate ||
+                    createTaskRequest.ExecutionDate > project.FinishDate)
+                        return new BaseRequestResponse<ProjectTask>()
+                        {
+                            Errors = new List<string>()
+                            {
+                                "The Execution date is out of the range between Project's Start and Finish Date "
+                            }
+                        };
+
+
+                var task = _mapper.Map<ProjectTask>(createTaskRequest);
+                var entity = _dbContext.Tasks.Add(task).Entity;
                 _dbContext.SaveChanges();
                 return new BaseRequestResponse<ProjectTask>()
                 {
@@ -250,12 +272,27 @@ namespace SlabProjectAPI.Services
 
         public BaseRequestResponse<bool> EditTask(EditTaskRequest editTaskRequest)
         {
-            var task = _dbContext.Tasks.FirstOrDefault(x => x.Id == editTaskRequest.Id);
+            var task = _dbContext.Tasks.Include(x => x.Project).FirstOrDefault(x => x.Id == editTaskRequest.Id);
             if (task != null)
             {
+                var project = task.Project;
+                if (editTaskRequest.ExecutionDate.HasValue)
+                {
+                    if (editTaskRequest.ExecutionDate < project.StartDate ||
+                        editTaskRequest.ExecutionDate > project.FinishDate)
+                        return new BaseRequestResponse<bool>()
+                        {
+                            Errors = new List<string>()
+                            {
+                                "The Execution date is out of the range between Project's Start and Finish Date "
+                            }
+                        };
+                    task.ExecutionDate = editTaskRequest.ExecutionDate.Value;
+                }
+
                 task.Name = string.IsNullOrEmpty(editTaskRequest.Name) ? task.Name : editTaskRequest.Name;
                 task.Description = string.IsNullOrEmpty(editTaskRequest.Description) ? task.Description : editTaskRequest.Description;
-                task.ExecutionDate = editTaskRequest.ExecutionDate.HasValue ? editTaskRequest.ExecutionDate.Value : task.ExecutionDate;
+                
                 _dbContext.Update(task);
                 _dbContext.SaveChanges();
                 return new BaseRequestResponse<bool>()
@@ -308,7 +345,7 @@ namespace SlabProjectAPI.Services
                 return new BaseRequestResponse<List<Project>>
                 {
                     Success = true,
-                    Data = _dbContext.Projects.AsNoTracking().ToList()
+                    Data = _dbContext.Projects.Include(x => x.Tasks).AsNoTracking().ToList()
                 };
             }
             catch (Exception ex)
@@ -355,7 +392,7 @@ namespace SlabProjectAPI.Services
                 return new BaseRequestResponse<List<ProjectTask>>
                 {
                     Success = true,
-                    Data = _dbContext.Tasks.AsNoTracking().ToList()
+                    Data = _dbContext.Tasks.Include(x => x.Project).AsNoTracking().ToList()
                 };
             }
             catch

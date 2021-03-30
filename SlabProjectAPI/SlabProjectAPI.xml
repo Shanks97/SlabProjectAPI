@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SlabProjectAPI</name>
+    </assembly>
+    <members>
+        <member name="M:SlabProjectAPI.Controllers.AuthController.Register(SlabProjectAPI.Domain.Requests.UserRegistrationRequest)">
+            <summary>
+            Admin can register new users as Operator User
+            </summary>
+            <param name="user">The user's email</param>
+            <returns></returns>
+        </member>
+        <member name="M:SlabProjectAPI.Controllers.AuthController.Login(SlabProjectAPI.Domain.Requests.UserLoginRequest)">
+            <summary>
+            Anonymous User Login
+            </summary>
+            <param name="user">Model to request the Login</param>
+            <returns></returns>
+        </member>
+        <member name="M:SlabProjectAPI.Controllers.AuthController.SwitchEnableStatusForOperator(System.String)">
+            <summary>
+            Admin can disable/enable the login for an Operator User by using the respective email
+            </summary>
+            <param name="email">Operator's email</param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

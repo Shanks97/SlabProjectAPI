@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SlabProjectAPI.Configuration;
@@ -8,6 +8,7 @@ using SlabProjectAPI.Data;
 using SlabProjectAPI.Domain;
 using SlabProjectAPI.Domain.Requests;
 using SlabProjectAPI.Domain.Responses;
+using SlabProjectAPI.Models;
 using SlabProjectAPI.Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -42,7 +43,7 @@ namespace SlabProjectAPI.Services
         {
             var result1 = await ValidatePassword(changePasswordRequest.OldPassword);
             var result2 = await ValidatePassword(changePasswordRequest.NewPassword);
-            if(result1.Any() || result2.Any())
+            if (result1.Any() || result2.Any())
             {
                 return new ChangePasswordResponse()
                 {
@@ -53,7 +54,7 @@ namespace SlabProjectAPI.Services
             }
 
             var user = await _userManager.FindByEmailAsync(changePasswordRequest.Email);
-            if(user == null)
+            if (user == null)
             {
                 return new ChangePasswordResponse()
                 {
@@ -94,8 +95,20 @@ namespace SlabProjectAPI.Services
                     Result = false,
                     Errors = new List<string>()
                         {
-                            "Email doesn't exist"
+                            "User doesn't exist"
                         }
+                };
+            }
+
+            var userInfo = _projectDbContext.UsersInformation.AsNoTracking().FirstOrDefault(x => x.UserName == request.Email);
+            if (!userInfo.Enabled)
+            {
+                return new AuthResult()
+                {
+                    Errors = new List<string>()
+                    {
+                        "Unauthorized to Login, your login is disabled"
+                    }
                 };
             }
 
@@ -103,28 +116,13 @@ namespace SlabProjectAPI.Services
 
             if (isCorrect)
             {
-                var userInfo = _projectDbContext.UsersInformation.FirstOrDefault(x => x.UserName == request.Email);
-                if (userInfo == null)
-                {
-                    return new RegistrationResponse()
-                    {
-                        Result = false,
-                        Errors = new List<string>()
-                        {
-                            "Auth for this email is disabled"
-                        }
-                    };
-                }
-                else
-                {
-                    var jwtToken = GenerateJwtToken(existingUser);
+                var jwtToken = GenerateJwtToken(existingUser);
 
-                    return new RegistrationResponse()
-                    {
-                        Result = true,
-                        Token = jwtToken
-                    };
-                }
+                return new RegistrationResponse()
+                {
+                    Result = true,
+                    Token = jwtToken
+                };
             }
             else
             {
@@ -191,42 +189,41 @@ namespace SlabProjectAPI.Services
 
             return new RegistrationResponse()
             {
-                Result = false,
                 Errors = isCreated.Errors.Select(x => x.Description).ToList()
             };
         }
 
-        public async Task<BaseRequestResponse<bool>> SwitchOperatorAuthentication(string email)
+        public async Task<BaseRequestResponse<User>> SwitchOperatorAuthentication(string email)
         {
             var existingUser = await _userManager.FindByEmailAsync(email);
-            if(existingUser != null)
+            if (existingUser != null)
             {
                 var isOperator = await _userManager.IsInRoleAsync(existingUser, RoleConstants.Operator);
                 if (isOperator)
                 {
                     var info = _projectDbContext.UsersInformation.FirstOrDefault(x => x.UserName == email);
-                    if (info.Enabled)
+                    info.Enabled = !info.Enabled;
+                    _projectDbContext.UsersInformation.Update(info);
+                    _projectDbContext.SaveChanges();
+                    return new BaseRequestResponse<User>()
                     {
-                        return new BaseRequestResponse<bool>()
-                        {
-                            Data = true,
-                            Success = true
-                        };
-                    }
-                    else
+                        Data = info,
+                        Success = true
+                    };
+                }
+                else
+                {
+                    return new BaseRequestResponse<User>()
                     {
-                        return new BaseRequestResponse<bool>()
+                        Errors = new List<string>()
                         {
-                            Data = false,
-                            Success = false
-                        };
-                    }
+                            "User is not an operator"
+                        }
+                    };
                 }
             }
-            return new BaseRequestResponse<bool>()
+            return new BaseRequestResponse<User>()
             {
-                Data = false,
-                Success = false,
                 Errors = new List<string>()
                 {
                     "email doesn't exist"
@@ -250,7 +247,7 @@ namespace SlabProjectAPI.Services
                 // the JTI is used for refresh token
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             }),
-                Expires = DateTime.UtcNow.AddHours(6),
+                Expires = DateTime.UtcNow.AddHours(2),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)
             };
 
@@ -273,6 +270,5 @@ namespace SlabProjectAPI.Services
             }
             return passErrors;
         }
-
     }
 }
