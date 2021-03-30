@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 
 namespace SlabProjectAPI.Domain.Responses
 {
-    public class ProjectRequestResponse<T> where T : class
+    public class ChangePasswordResponse
     {
-        public T Data { get; set; }
         public bool Success { get; set; }
+        public List<string> NewPasswordErrors { get; set; }
+        public List<string> OldPasswordErrors { get; set; }
         public List<string> Errors { get; set; }
     }
 }

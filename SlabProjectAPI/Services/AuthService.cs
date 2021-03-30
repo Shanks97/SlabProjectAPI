@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SlabProjectAPI.Configuration;
 using SlabProjectAPI.Constants;
+using SlabProjectAPI.Data;
 using SlabProjectAPI.Domain;
 using SlabProjectAPI.Domain.Requests;
 using SlabProjectAPI.Domain.Responses;
@@ -22,16 +23,64 @@ namespace SlabProjectAPI.Services
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ProjectDbContext _projectDbContext;
         private readonly JwtConfig _jwtConfig;
 
         public AuthService(
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager,
+            ProjectDbContext projectDbContext,
             IOptionsMonitor<JwtConfig> optionsMonitor)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _projectDbContext = projectDbContext;
             _jwtConfig = optionsMonitor.CurrentValue;
+        }
+
+        public async Task<ChangePasswordResponse> ChangePassword(ChangePasswordRequest changePasswordRequest)
+        {
+            var result1 = await ValidatePassword(changePasswordRequest.OldPassword);
+            var result2 = await ValidatePassword(changePasswordRequest.NewPassword);
+            if(result1.Any() || result2.Any())
+            {
+                return new ChangePasswordResponse()
+                {
+                    OldPasswordErrors = result1,
+                    NewPasswordErrors = result2,
+                    Success = false
+                };
+            }
+
+            var user = await _userManager.FindByEmailAsync(changePasswordRequest.Email);
+            if(user == null)
+            {
+                return new ChangePasswordResponse()
+                {
+                    Errors = new List<string>()
+                    {
+                        "email doesn't exist"
+                    },
+                    Success = false
+                };
+            }
+
+            var passwordChanged = await _userManager.ChangePasswordAsync(user, changePasswordRequest.OldPassword, changePasswordRequest.NewPassword);
+            if (passwordChanged.Succeeded)
+            {
+                return new ChangePasswordResponse()
+                {
+                    Success = true
+                };
+            }
+            else
+            {
+                return new ChangePasswordResponse()
+                {
+                    Success = false,
+                    Errors = passwordChanged.Errors.Select(x => x.Description).ToList()
+                };
+            }
         }
 
         public async Task<AuthResult> Login(UserLoginRequest request)
@@ -54,13 +103,28 @@ namespace SlabProjectAPI.Services
 
             if (isCorrect)
             {
-                var jwtToken = GenerateJwtToken(existingUser);
-
-                return new RegistrationResponse()
+                var userInfo = _projectDbContext.UsersInformation.FirstOrDefault(x => x.UserName == request.Email);
+                if (userInfo == null)
                 {
-                    Result = true,
-                    Token = jwtToken
-                };
+                    return new RegistrationResponse()
+                    {
+                        Result = false,
+                        Errors = new List<string>()
+                        {
+                            "Auth for this email is disabled"
+                        }
+                    };
+                }
+                else
+                {
+                    var jwtToken = GenerateJwtToken(existingUser);
+
+                    return new RegistrationResponse()
+                    {
+                        Result = true,
+                        Token = jwtToken
+                    };
+                }
             }
             else
             {
@@ -93,14 +157,7 @@ namespace SlabProjectAPI.Services
             }
 
             //PASSWORD VALIDATOR
-            var passErrors = new List<string>();
-            var validators = _userManager.PasswordValidators;
-            foreach (var validator in validators)
-            {
-                var isValid = await validator.ValidateAsync(_userManager, null, request.Password);
-                if (!isValid.Succeeded)
-                    passErrors.AddRange(isValid.Errors.Select(x => x.Description));
-            }
+            var passErrors = await ValidatePassword(request.Password);
 
             if (passErrors.Any())
             {
@@ -118,7 +175,12 @@ namespace SlabProjectAPI.Services
             if (isCreated.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user1, registerAsAdmin ? RoleConstants.Admin : RoleConstants.Operator);
-
+                _projectDbContext.UsersInformation.Add(new Models.User
+                {
+                    Enabled = true,
+                    UserName = request.UserName
+                });
+                _projectDbContext.SaveChanges();
                 var jwtToken = GenerateJwtToken(newUser);
                 return new RegistrationResponse()
                 {
@@ -131,6 +193,44 @@ namespace SlabProjectAPI.Services
             {
                 Result = false,
                 Errors = isCreated.Errors.Select(x => x.Description).ToList()
+            };
+        }
+
+        public async Task<BaseRequestResponse<bool>> SwitchOperatorAuthentication(string email)
+        {
+            var existingUser = await _userManager.FindByEmailAsync(email);
+            if(existingUser != null)
+            {
+                var isOperator = await _userManager.IsInRoleAsync(existingUser, RoleConstants.Operator);
+                if (isOperator)
+                {
+                    var info = _projectDbContext.UsersInformation.FirstOrDefault(x => x.UserName == email);
+                    if (info.Enabled)
+                    {
+                        return new BaseRequestResponse<bool>()
+                        {
+                            Data = true,
+                            Success = true
+                        };
+                    }
+                    else
+                    {
+                        return new BaseRequestResponse<bool>()
+                        {
+                            Data = false,
+                            Success = false
+                        };
+                    }
+                }
+            }
+            return new BaseRequestResponse<bool>()
+            {
+                Data = false,
+                Success = false,
+                Errors = new List<string>()
+                {
+                    "email doesn't exist"
+                }
             };
         }
 
@@ -159,6 +259,19 @@ namespace SlabProjectAPI.Services
             var jwtToken = jwtTokenHandler.WriteToken(token);
 
             return jwtToken;
+        }
+
+        private async Task<List<string>> ValidatePassword(string password)
+        {
+            var validators = _userManager.PasswordValidators;
+            var passErrors = new List<string>();
+            foreach (var validator in validators)
+            {
+                var isValid = await validator.ValidateAsync(_userManager, null, password);
+                if (!isValid.Succeeded)
+                    passErrors.AddRange(isValid.Errors.Select(x => x.Description));
+            }
+            return passErrors;
         }
 
     }
