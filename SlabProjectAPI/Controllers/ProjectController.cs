@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SlabProjectAPI.Data;
+using SlabProjectAPI.Services;
+using SlabProjectAPI.Services.Interfaces;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,21 +17,25 @@ namespace SlabProjectAPI.Controllers
     public class ProjectController : ControllerBase
     {
         private readonly ILogger<ProjectController> _logger;
-        private readonly ProjectDbContext _projectDbContext;
+        private readonly IProjectService _projectService;
 
         public ProjectController(
             ILogger<ProjectController> logger,
-            ProjectDbContext projectDbContext
+            IProjectService projectService
             )
         {
             _logger = logger;
-            _projectDbContext = projectDbContext;
+            _projectService = projectService;
         }
 
-        [HttpGet]
+        [HttpGet("GetProjects")]
         public IActionResult GetProjects()
         {
-            return Ok(_projectDbContext.Projects.AsNoTracking().ToList());
+            var result = _projectService.GetProjects();
+            if (result.Success)
+                return Ok(result);
+            else
+                return BadRequest(result);
         }
     }
 

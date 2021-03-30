@@ -9,7 +9,7 @@ using SlabProjectAPI.Data;
 namespace SlabProjectAPI.Migrations
 {
     [DbContext(typeof(ProjectDbContext))]
-    [Migration("20210329232619_Initial")]
+    [Migration("20210330033019_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -214,21 +214,6 @@ namespace SlabProjectAPI.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("ProjectProjectTask", b =>
-                {
-                    b.Property<int>("ProjectsId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TasksId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("ProjectsId", "TasksId");
-
-                    b.HasIndex("TasksId");
-
-                    b.ToTable("ProjectProjectTask");
-                });
-
             modelBuilder.Entity("SlabProjectAPI.Models.Project", b =>
                 {
                     b.Property<int>("Id")
@@ -241,10 +226,16 @@ namespace SlabProjectAPI.Migrations
                     b.Property<DateTime>("FinishDate")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("FinishedDate")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("StartDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -267,7 +258,12 @@ namespace SlabProjectAPI.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
 
                     b.ToTable("Tasks");
                 });
@@ -340,19 +336,20 @@ namespace SlabProjectAPI.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ProjectProjectTask", b =>
+            modelBuilder.Entity("SlabProjectAPI.Models.ProjectTask", b =>
                 {
-                    b.HasOne("SlabProjectAPI.Models.Project", null)
-                        .WithMany()
-                        .HasForeignKey("ProjectsId")
+                    b.HasOne("SlabProjectAPI.Models.Project", "Project")
+                        .WithMany("Tasks")
+                        .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SlabProjectAPI.Models.ProjectTask", null)
-                        .WithMany()
-                        .HasForeignKey("TasksId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("SlabProjectAPI.Models.Project", b =>
+                {
+                    b.Navigation("Tasks");
                 });
 #pragma warning restore 612, 618
         }

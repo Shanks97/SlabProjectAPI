@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
-using System;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SlabProjectAPI.Migrations
 {
@@ -54,27 +54,14 @@ namespace SlabProjectAPI.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Name = table.Column<string>(type: "TEXT", nullable: true),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
+                    Status = table.Column<string>(type: "TEXT", nullable: true),
                     StartDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    FinishDate = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    FinishDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    FinishedDate = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Projects", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Tasks",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: true),
-                    Description = table.Column<string>(type: "TEXT", nullable: true),
-                    ExecutionDate = table.Column<DateTime>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Tasks", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -198,25 +185,23 @@ namespace SlabProjectAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProjectProjectTask",
+                name: "Tasks",
                 columns: table => new
                 {
-                    ProjectsId = table.Column<int>(type: "INTEGER", nullable: false),
-                    TasksId = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    ProjectId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: true),
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    ExecutionDate = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProjectProjectTask", x => new { x.ProjectsId, x.TasksId });
+                    table.PrimaryKey("PK_Tasks", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ProjectProjectTask_Projects_ProjectsId",
-                        column: x => x.ProjectsId,
+                        name: "FK_Tasks_Projects_ProjectId",
+                        column: x => x.ProjectId,
                         principalTable: "Projects",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ProjectProjectTask_Tasks_TasksId",
-                        column: x => x.TasksId,
-                        principalTable: "Tasks",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -259,9 +244,9 @@ namespace SlabProjectAPI.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProjectProjectTask_TasksId",
-                table: "ProjectProjectTask",
-                column: "TasksId");
+                name: "IX_Tasks_ProjectId",
+                table: "Tasks",
+                column: "ProjectId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -282,7 +267,7 @@ namespace SlabProjectAPI.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "ProjectProjectTask");
+                name: "Tasks");
 
             migrationBuilder.DropTable(
                 name: "UsersInformation");
@@ -295,9 +280,6 @@ namespace SlabProjectAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "Projects");
-
-            migrationBuilder.DropTable(
-                name: "Tasks");
         }
     }
 }

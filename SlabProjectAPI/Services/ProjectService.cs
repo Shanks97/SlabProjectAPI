@@ -251,7 +251,7 @@ namespace SlabProjectAPI.Services
                     Data = _dbContext.Projects.AsNoTracking().ToList()
                 };
             }
-            catch
+            catch (Exception ex)
             {
                 return new BaseRequestResponse<List<Project>>
                 {
