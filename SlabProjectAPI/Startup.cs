@@ -2,14 +2,16 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SlabProjectAPI.Configuration;
 using SlabProjectAPI.Data;
+using SlabProjectAPI.Services;
+using SlabProjectAPI.Services.Interfaces;
 using System.Text;
 
 namespace SlabProjectAPI
@@ -36,7 +38,6 @@ namespace SlabProjectAPI
                 options.UseSqlite(
                     Configuration.GetConnectionString("DefaultConnection")));
 
-            
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -50,7 +51,7 @@ namespace SlabProjectAPI
                     jwt.SaveToken = true;
                     jwt.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuerSigningKey = true, 
+                        ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(key),
                         ValidateIssuer = false,
                         ValidateAudience = false,
@@ -60,8 +61,12 @@ namespace SlabProjectAPI
                 });
 
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddRoles<IdentityRole>()                
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ProjectDbContext>();
+
+
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IProjectService, ProjectService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
