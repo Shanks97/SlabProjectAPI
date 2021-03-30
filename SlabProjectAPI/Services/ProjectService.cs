@@ -16,7 +16,17 @@ namespace SlabProjectAPI.Services
             throw new NotImplementedException();
         }
 
-        public Task<BaseRequestResponse<bool>> CreateProject(CreateProjectRequest createprojectrequest)
+        public Task<BaseRequestResponse<bool>> CompleteTask(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<BaseRequestResponse<bool>> CreateProject(CreateProjectRequest createProjectRequest)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<BaseRequestResponse<bool>> CreateTask(CreateTaskRequest createTaskRequest)
         {
             throw new NotImplementedException();
         }
@@ -26,7 +36,17 @@ namespace SlabProjectAPI.Services
             throw new NotImplementedException();
         }
 
-        public Task<BaseRequestResponse<bool>> EditProject(EditProjectRequest createprojectrequest)
+        public Task<BaseRequestResponse<bool>> DeleteTask(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<BaseRequestResponse<bool>> EditProject(EditProjectRequest createProjectRequest)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<BaseRequestResponse<bool>> EditTask(EditTaskRequest createTaskRequest)
         {
             throw new NotImplementedException();
         }
@@ -37,6 +57,16 @@ namespace SlabProjectAPI.Services
         }
 
         public Task<BaseRequestResponse<List<Project>>> GetProjects()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<BaseRequestResponse<ProjectTask>> GetTask(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<BaseRequestResponse<List<ProjectTask>>> GetTasks()
         {
             throw new NotImplementedException();
         }

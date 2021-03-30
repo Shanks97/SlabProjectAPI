@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SlabProjectAPI.Domain.Requests
 {
-    public class CreateTask
+    public class CreateTaskRequest
     {
         [Required]
         public string Name { get; set; }
