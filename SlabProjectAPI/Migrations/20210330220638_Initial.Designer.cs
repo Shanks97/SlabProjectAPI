@@ -9,7 +9,7 @@ using SlabProjectAPI.Data;
 namespace SlabProjectAPI.Migrations
 {
     [DbContext(typeof(ProjectDbContext))]
-    [Migration("20210330033019_Initial")]
+    [Migration("20210330220638_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -2,41 +2,28 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using SlabProjectAPI.Configuration;
 using SlabProjectAPI.Constants;
-using SlabProjectAPI.Data;
 using SlabProjectAPI.Domain.Requests;
 using SlabProjectAPI.Domain.Responses;
 using SlabProjectAPI.Services.Interfaces;
-using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SlabProjectAPI.Controllers
 
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("auth")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly IProjectService _projectService;
         private readonly RoleManager<IdentityRole> _roleManager;
 
         public AuthController(
             IAuthService authService,
-            IProjectService projectService,
             RoleManager<IdentityRole> roleManager)
         {
             _authService = authService;
-            _projectService = projectService;
             _roleManager = roleManager;
         }
 
@@ -46,7 +33,7 @@ namespace SlabProjectAPI.Controllers
         /// <param name="user">The user's email</param>
         /// <returns></returns>
         [HttpPost]
-        [Route("Register")]
+        [Route("register")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.Admin)]
         public async Task<IActionResult> Register([FromBody] UserRegistrationRequest user)
         {
@@ -78,7 +65,7 @@ namespace SlabProjectAPI.Controllers
         /// <returns></returns>
         [HttpPost]
         [AllowAnonymous]
-        [Route("Login")]
+        [Route("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginRequest user)
         {
             if (ModelState.IsValid)
@@ -105,10 +92,10 @@ namespace SlabProjectAPI.Controllers
         /// </summary>
         /// <param name="email">Operator's email</param>
         /// <returns></returns>
-        [HttpGet]
-        [Route("SwitchOperatorStatus")]
+        [HttpPatch]
+        [Route("switchOperatorStatus")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.Admin)]
-        public async Task<IActionResult> SwitchEnableStatusForOperator(string email)
+        public async Task<IActionResult> SwitchEnableStatusForOperator([FromQuery] string email)
         {
             var result = await _authService.SwitchOperatorAuthentication(email);
             if (result.Success)
@@ -116,7 +103,6 @@ namespace SlabProjectAPI.Controllers
             else
                 return BadRequest(result);
         }
-
 
         private async Task EnsureBasicRoles()
         {

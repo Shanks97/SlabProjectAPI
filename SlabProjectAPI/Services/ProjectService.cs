@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SlabProjectAPI.Constants;
 using SlabProjectAPI.Data;
@@ -9,34 +10,41 @@ using SlabProjectAPI.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SlabProjectAPI.Services
 {
     public class ProjectService : IProjectService
     {
+        private UserManager<IdentityUser> _userManager;
         private ProjectDbContext _dbContext;
+        private IEmailService _emailService;
         private IMapper _mapper;
 
         public ProjectService(
+            UserManager<IdentityUser> userManager,
             ProjectDbContext dbContext,
+            IEmailService emailService,
             IMapper mapper)
         {
+            _userManager = userManager;
             _dbContext = dbContext;
+            _emailService = emailService;
             _mapper = mapper;
         }
 
-        public BaseRequestResponse<bool> CompleteProject(int id)
+        public async Task<BaseRequestResponse<bool>> CompleteProject(int id)
         {
             var project = _dbContext.Projects.Include(x => x.Tasks).FirstOrDefault(x => x.Id == id);
             if (project != null)
             {
-                if(project.Tasks.Any(x => x.ExecutionDate > DateTime.Now))
+                if (project.Tasks.Any(x => x.Status == StatusConstants.InProcess))
                 {
                     return new BaseRequestResponse<bool>()
                     {
                         Errors = new List<string>()
                         {
-                            "Some tasks didn't executed yet"
+                            "Some tasks are not completed"
                         }
                     };
                 }
@@ -46,12 +54,17 @@ namespace SlabProjectAPI.Services
                     project.Status = StatusConstants.Done;
                     _dbContext.Update(project);
                     _dbContext.SaveChanges();
+                    var users = await _userManager.GetUsersInRoleAsync(RoleConstants.Admin);
+                    foreach(var email in users.Select(x => x.Email))
+                    {
+                        _emailService.SendEmailProjectCompleted(email, project);
+                    }
+
                     return new BaseRequestResponse<bool>()
                     {
                         Success = true,
                         Data = true,
                     };
-                 
                 }
                 else
                 {
@@ -71,6 +84,44 @@ namespace SlabProjectAPI.Services
                 Errors = new List<string>()
                 {
                     "Cannot complete project with id: " + id
+                }
+            };
+        }
+
+        public BaseRequestResponse<bool> CompleteTask(int id)
+        {
+            var task = _dbContext.Tasks.FirstOrDefault(x => x.Id == id);
+            if (task != null)
+            {
+                if (task.Status == StatusConstants.InProcess)
+                {
+                    task.Status = StatusConstants.Done;
+                    _dbContext.Update(task);
+                    _dbContext.SaveChanges();
+                    return new BaseRequestResponse<bool>()
+                    {
+                        Success = true,
+                        Data = true,
+                    };
+                }
+                else
+                {
+                    return new BaseRequestResponse<bool>()
+                    {
+                        Success = false,
+                        Errors = new List<string>()
+                        {
+                            "Task is already completed"
+                        }
+                    };
+                }
+            }
+            return new BaseRequestResponse<bool>()
+            {
+                Success = false,
+                Errors = new List<string>()
+                {
+                    "Cannot complete task with id: " + id
                 }
             };
         }
@@ -130,7 +181,7 @@ namespace SlabProjectAPI.Services
             try
             {
                 var project = _dbContext.Projects.FirstOrDefault(x => x.Id == createTaskRequest.ProjectId);
-                if(project == null)
+                if (project == null)
                 {
                     return new BaseRequestResponse<ProjectTask>()
                     {
@@ -142,16 +193,16 @@ namespace SlabProjectAPI.Services
                 }
                 if (createTaskRequest.ExecutionDate < project.StartDate ||
                     createTaskRequest.ExecutionDate > project.FinishDate)
-                        return new BaseRequestResponse<ProjectTask>()
-                        {
-                            Errors = new List<string>()
+                    return new BaseRequestResponse<ProjectTask>()
+                    {
+                        Errors = new List<string>()
                             {
                                 "The Execution date is out of the range between Project's Start and Finish Date "
                             }
-                        };
-
+                    };
 
                 var task = _mapper.Map<ProjectTask>(createTaskRequest);
+                task.Status = StatusConstants.InProcess;
                 var entity = _dbContext.Tasks.Add(task).Entity;
                 _dbContext.SaveChanges();
                 return new BaseRequestResponse<ProjectTask>()
@@ -177,7 +228,7 @@ namespace SlabProjectAPI.Services
         public BaseRequestResponse<bool> DeleteProject(int id)
         {
             var project = _dbContext.Projects.FirstOrDefault(x => x.Id == id);
-            if(project != null)
+            if (project != null)
             {
                 _dbContext.Projects.Remove(project);
                 _dbContext.SaveChanges();
@@ -228,13 +279,13 @@ namespace SlabProjectAPI.Services
             }
         }
 
-        public BaseRequestResponse<bool> EditProject(EditProjectRequest editProjectRequest)
+        public BaseRequestResponse<bool> EditProject(int id, EditProjectRequest editProjectRequest)
         {
-            var project = _dbContext.Projects.Include(x => x.Tasks).FirstOrDefault(x => x.Id == editProjectRequest.Id);
+            var project = _dbContext.Projects.Include(x => x.Tasks).FirstOrDefault(x => x.Id == id);
 
-            if(project != null)
+            if (project != null)
             {
-                if(project.Tasks.Any(x => x.ExecutionDate > editProjectRequest.FinishDate))
+                if (project.Tasks.Any(x => x.ExecutionDate > editProjectRequest.FinishDate))
                 {
                     return new BaseRequestResponse<bool>()
                     {
@@ -264,15 +315,15 @@ namespace SlabProjectAPI.Services
                     Success = false,
                     Errors = new List<string>()
                     {
-                        "Cannot update Project with id: " + editProjectRequest.Id
+                        "Cannot update Project with id: " + id
                     }
                 };
             }
         }
 
-        public BaseRequestResponse<bool> EditTask(EditTaskRequest editTaskRequest)
+        public BaseRequestResponse<bool> EditTask(int id, EditTaskRequest editTaskRequest)
         {
-            var task = _dbContext.Tasks.Include(x => x.Project).FirstOrDefault(x => x.Id == editTaskRequest.Id);
+            var task = _dbContext.Tasks.Include(x => x.Project).FirstOrDefault(x => x.Id == id);
             if (task != null)
             {
                 var project = task.Project;
@@ -292,7 +343,7 @@ namespace SlabProjectAPI.Services
 
                 task.Name = string.IsNullOrEmpty(editTaskRequest.Name) ? task.Name : editTaskRequest.Name;
                 task.Description = string.IsNullOrEmpty(editTaskRequest.Description) ? task.Description : editTaskRequest.Description;
-                
+
                 _dbContext.Update(task);
                 _dbContext.SaveChanges();
                 return new BaseRequestResponse<bool>()
@@ -309,7 +360,7 @@ namespace SlabProjectAPI.Services
                     Success = false,
                     Errors = new List<string>()
                     {
-                        "Cannot update Project with id: " + editTaskRequest.Id
+                        "Cannot update Project with id: " + id
                     }
                 };
             }
@@ -318,7 +369,7 @@ namespace SlabProjectAPI.Services
         public BaseRequestResponse<Project> GetProject(int id)
         {
             var project = _dbContext.Projects.Include(x => x.Tasks).AsNoTracking().FirstOrDefault(x => x.Id == id);
-            if(project != null)
+            if (project != null)
             {
                 return new BaseRequestResponse<Project>()
                 {

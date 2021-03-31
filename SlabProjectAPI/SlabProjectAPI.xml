@@ -25,5 +25,80 @@
             <param name="email">Operator's email</param>
             <returns></returns>
         </member>
+        <member name="M:SlabProjectAPI.Controllers.ProjectController.CreateProject(SlabProjectAPI.Domain.Requests.CreateProjectRequest)">
+            <summary>
+            Endpoint to create a project based on the model
+            </summary>
+            <param name="model">Project creation model</param>
+            <returns></returns>
+        </member>
+        <member name="M:SlabProjectAPI.Controllers.ProjectController.CreateProjectTask(SlabProjectAPI.Domain.Requests.CreateTaskRequest)">
+            <summary>
+            Endpoint to create a Task for a project using the project ID
+            </summary>
+            <param name="model">Project Task creation model</param>
+            <returns></returns>
+        </member>
+        <member name="M:SlabProjectAPI.Controllers.ProjectController.GetProjectById(System.Int32)">
+            <summary>
+            Endoint to get a project based on its Id
+            </summary>
+            <param name="id">Project's id to find</param>
+            <returns></returns>
+        </member>
+        <member name="M:SlabProjectAPI.Controllers.ProjectController.GetTaskById(System.Int32)">
+            <summary>
+            Endpoint to get a task based on its Id
+            </summary>
+            <param name="id">Task's id to find</param>
+            <returns></returns>
+        </member>
+        <member name="M:SlabProjectAPI.Controllers.ProjectController.GetProjects">
+            <summary>
+            Endpoint to see all projects information
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SlabProjectAPI.Controllers.ProjectController.GetTasks">
+            <summary>
+            Endpoint to get all Tasks information
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SlabProjectAPI.Controllers.ProjectController.UpdateProject(System.Int32,SlabProjectAPI.Domain.Requests.EditProjectRequest)">
+            <summary>
+            Endpoint to update a project based on the edit model
+            </summary>
+            <param name="model">Model for edit a project, all properties are optional, except Project's Id</param>
+            <returns></returns>
+        </member>
+        <member name="M:SlabProjectAPI.Controllers.ProjectController.UpdateTask(System.Int32,SlabProjectAPI.Domain.Requests.EditTaskRequest)">
+            <summary>
+            Endpoint to update a task based on the edit model
+            </summary>
+            <param name="model">Model for edit a task, all properties are optional, except task's Id</param>
+            <returns></returns>
+        </member>
+        <member name="M:SlabProjectAPI.Controllers.ProjectController.CompleteProject(System.Int32)">
+            <summary>
+            Complete a project if all of its Tasks are already executed
+            </summary>
+            <param name="id">Project's Id</param>
+            <returns></returns>
+        </member>
+        <member name="M:SlabProjectAPI.Controllers.ProjectController.DeleteProject(System.Int32)">
+            <summary>
+            Delete a project based on its Id
+            </summary>
+            <param name="id">Project's Id to delete</param>
+            <returns></returns>
+        </member>
+        <member name="M:SlabProjectAPI.Controllers.ProjectController.DeleteProjectTask(System.Int32)">
+            <summary>
+            Delete a task based on its Id
+            </summary>
+            <param name="id">Task's Id to delete</param>
+            <returns></returns>
+        </member>
     </members>
 </doc>

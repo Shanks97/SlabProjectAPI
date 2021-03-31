@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace SlabProjectAPI.Domain.Requests
+﻿namespace SlabProjectAPI.Domain.Requests
 {
     public class ChangePasswordRequest
     {

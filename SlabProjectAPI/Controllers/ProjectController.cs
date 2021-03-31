@@ -1,21 +1,17 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SlabProjectAPI.Constants;
-using SlabProjectAPI.Data;
 using SlabProjectAPI.Domain.Requests;
 using SlabProjectAPI.Domain.Responses;
-using SlabProjectAPI.Services;
 using SlabProjectAPI.Services.Interfaces;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace SlabProjectAPI.Controllers
 {
     [ApiController]
-    [Route("[controller]/[action]")]
+    [Route("project")]
     public class ProjectController : ControllerBase
     {
         private readonly ILogger<ProjectController> _logger;
@@ -55,7 +51,7 @@ namespace SlabProjectAPI.Controllers
                     {
                         "Invalid payload"
                     }
-            });
+                });
             }
         }
 
@@ -65,6 +61,7 @@ namespace SlabProjectAPI.Controllers
         /// <param name="model">Project Task creation model</param>
         /// <returns></returns>
         [HttpPost]
+        [Route("task")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.Operator)]
         public IActionResult CreateProjectTask([FromBody] CreateTaskRequest model)
         {
@@ -109,7 +106,7 @@ namespace SlabProjectAPI.Controllers
         /// </summary>
         /// <param name="id">Task's id to find</param>
         /// <returns></returns>
-        [HttpGet("{id}")]
+        [HttpGet("task/{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.Admin)]
         public IActionResult GetTaskById(int id)
         {
@@ -124,7 +121,7 @@ namespace SlabProjectAPI.Controllers
         /// Endpoint to see all projects information
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
+        [HttpGet("all")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.Admin)]
         public IActionResult GetProjects()
         {
@@ -139,7 +136,7 @@ namespace SlabProjectAPI.Controllers
         /// Endpoint to get all Tasks information
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
+        [HttpGet("allTasks")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.Admin)]
         public IActionResult GetTasks()
         {
@@ -156,10 +153,11 @@ namespace SlabProjectAPI.Controllers
         /// <param name="model">Model for edit a project, all properties are optional, except Project's Id</param>
         /// <returns></returns>
         [HttpPatch]
+        [Route("{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.Operator)]
-        public IActionResult UpdateProject([FromBody] EditProjectRequest model)
+        public IActionResult UpdateProject(int id, [FromBody] EditProjectRequest model)
         {
-            var result = _projectService.EditProject(model);
+            var result = _projectService.EditProject(id, model);
             if (result.Success)
                 return Ok(result);
             else
@@ -172,10 +170,11 @@ namespace SlabProjectAPI.Controllers
         /// <param name="model">Model for edit a task, all properties are optional, except task's Id</param>
         /// <returns></returns>
         [HttpPatch]
+        [Route("task/{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.Operator)]
-        public IActionResult UpdateTask([FromBody] EditTaskRequest model)
+        public IActionResult UpdateTask(int id, [FromBody] EditTaskRequest model)
         {
-            var result = _projectService.EditTask(model);
+            var result = _projectService.EditTask(id, model);
             if (result.Success)
                 return Ok(result);
             else
@@ -187,11 +186,27 @@ namespace SlabProjectAPI.Controllers
         /// </summary>
         /// <param name="id">Project's Id</param>
         /// <returns></returns>
-        [HttpGet("{id}")]
+        [HttpPatch("complete/{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.Operator)]
-        public IActionResult CompleteProject(int id)
+        public async Task<IActionResult> CompleteProject(int id)
         {
-            var result = _projectService.CompleteProject(id);
+            var result = await _projectService.CompleteProject(id);
+            if (result.Success)
+                return Ok(result);
+            else
+                return BadRequest(result);
+        }
+
+        /// <summary>
+        /// Complete a project if all of its Tasks are already executed
+        /// </summary>
+        /// <param name="id">Project's Id</param>
+        /// <returns></returns>
+        [HttpPatch("complete/task/{id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.Operator)]
+        public IActionResult CompleteProjectTask(int id)
+        {
+            var result = _projectService.CompleteTask(id);
             if (result.Success)
                 return Ok(result);
             else
@@ -219,7 +234,7 @@ namespace SlabProjectAPI.Controllers
         /// </summary>
         /// <param name="id">Task's Id to delete</param>
         /// <returns></returns>
-        [HttpDelete("{id}")]
+        [HttpDelete("task/{id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.Admin)]
         public IActionResult DeleteProjectTask(int id)
         {
@@ -230,6 +245,4 @@ namespace SlabProjectAPI.Controllers
                 return BadRequest(result);
         }
     }
-
-    
 }

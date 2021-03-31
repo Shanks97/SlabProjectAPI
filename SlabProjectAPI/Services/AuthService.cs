@@ -14,6 +14,8 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,19 +26,25 @@ namespace SlabProjectAPI.Services
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IEmailService _emailService;
         private readonly ProjectDbContext _projectDbContext;
         private readonly JwtConfig _jwtConfig;
+        private readonly MailConfig _mailSettings;
 
         public AuthService(
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager,
             ProjectDbContext projectDbContext,
-            IOptionsMonitor<JwtConfig> optionsMonitor)
+            IEmailService emailService,
+            IOptionsMonitor<JwtConfig> optionsMonitor,
+            IOptionsMonitor<MailConfig> mailMonitor)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _emailService = emailService;
             _projectDbContext = projectDbContext;
             _jwtConfig = optionsMonitor.CurrentValue;
+            _mailSettings = mailMonitor.CurrentValue;
         }
 
         public async Task<ChangePasswordResponse> ChangePassword(ChangePasswordRequest changePasswordRequest)
@@ -99,7 +107,7 @@ namespace SlabProjectAPI.Services
                         }
                 };
             }
-
+            var roles = await _userManager.GetRolesAsync(existingUser);
             var userInfo = _projectDbContext.UsersInformation.AsNoTracking().FirstOrDefault(x => x.UserName == request.Email);
             if (!userInfo.Enabled)
             {
@@ -116,7 +124,7 @@ namespace SlabProjectAPI.Services
 
             if (isCorrect)
             {
-                var jwtToken = GenerateJwtToken(existingUser);
+                var jwtToken = await GenerateJwtToken(existingUser);
 
                 return new RegistrationResponse()
                 {
@@ -172,14 +180,15 @@ namespace SlabProjectAPI.Services
 
             if (isCreated.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user1, RoleConstants.Operator);
+                await _userManager.AddToRoleAsync(user1, RoleConstants.Admin);
                 _projectDbContext.UsersInformation.Add(new Models.User
                 {
                     Enabled = true,
                     UserName = request.UserName
                 });
                 _projectDbContext.SaveChanges();
-                var jwtToken = GenerateJwtToken(newUser);
+                var jwtToken = await GenerateJwtToken(newUser);
+                _emailService.SendEmailUserCreated(request.UserName, request.Password);
                 return new RegistrationResponse()
                 {
                     Result = true,
@@ -231,31 +240,39 @@ namespace SlabProjectAPI.Services
             };
         }
 
-        private string GenerateJwtToken(IdentityUser user)
+        private async Task<string> GenerateJwtToken(IdentityUser user)
         {
-            var jwtTokenHandler = new JwtSecurityTokenHandler();
-
-            var key = Encoding.ASCII.GetBytes(_jwtConfig.Secret);
-
-            var tokenDescriptor = new SecurityTokenDescriptor
+            var claims = new List<Claim>
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                new Claim("Id", user.Id),
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                // the JTI is used for refresh token
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            }),
-                Expires = DateTime.UtcNow.AddHours(2),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
             };
 
-            var token = jwtTokenHandler.CreateToken(tokenDescriptor);
+            // Get User roles and add them to claims
+            var roles = await _userManager.GetRolesAsync(user);
+            AddRolesToClaims(claims, roles);
 
-            var jwtToken = jwtTokenHandler.WriteToken(token);
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtConfig.Secret));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var expires = DateTime.Now.AddDays(1);
 
-            return jwtToken;
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: expires,
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private void AddRolesToClaims(List<Claim> claims, IEnumerable<string> roles)
+        {
+            foreach (var role in roles)
+            {
+                var roleClaim = new Claim(ClaimTypes.Role, role);
+                claims.Add(roleClaim);
+            }
         }
 
         private async Task<List<string>> ValidatePassword(string password)
@@ -270,5 +287,7 @@ namespace SlabProjectAPI.Services
             }
             return passErrors;
         }
+
+      
     }
 }

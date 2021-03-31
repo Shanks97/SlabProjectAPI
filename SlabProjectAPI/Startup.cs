@@ -1,8 +1,10 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +20,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SlabProjectAPI
 {
@@ -34,7 +37,8 @@ namespace SlabProjectAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-             services.AddSwaggerGen(c => { //<-- NOTE 'Add' instead of 'Configure'
+            services.AddSwaggerGen(c =>
+            { //<-- NOTE 'Add' instead of 'Configure'
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Title = "SlabCode API",
@@ -45,11 +49,10 @@ namespace SlabProjectAPI
                 c.IncludeXmlComments(xmlPath);
             });
             services.Configure<JwtConfig>(Configuration.GetSection("JwtConfig"));
+            services.Configure<MailConfig>(Configuration.GetSection("MailSettings"));
             services.AddDbContext<ProjectDbContext>(options =>
                 options.UseSqlite(
                     Configuration.GetConnectionString("DefaultConnection")));
-
-           
 
             services.AddAuthentication(options =>
             {
@@ -77,18 +80,28 @@ namespace SlabProjectAPI
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ProjectDbContext>();
 
+            services.AddAuthorization();
+
             var mapperConfig = new MapperConfiguration(mc =>
             {
                 mc.AddProfile(new ProjectProfile());
                 mc.AddProfile(new ProjectTaskProfile());
             });
 
-            services.AddControllers().AddNewtonsoftJson(options =>
-                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore 
-            );
+            services.AddControllers(config =>
+            {
+                var policy = new AuthorizationPolicyBuilder()
+                                 .RequireAuthenticatedUser()
+                                 .Build();
+                config.Filters.Add(new AuthorizeFilter(policy));
+            }).AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            });
 
             services.AddSingleton(mapperConfig.CreateMapper());
 
+            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IProjectService, ProjectService>();
         }
@@ -119,6 +132,46 @@ namespace SlabProjectAPI
             {
                 endpoints.MapControllers();
             });
+        }
+
+        internal class MaximumOfficeNumberAuthorizationHandler : AuthorizationHandler<MaximumOfficeNumberRequirement>
+        {
+            protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, MaximumOfficeNumberRequirement requirement)
+            {
+                // Bail out if the office number claim isn't present
+                if (!context.User.HasClaim(c => c.Issuer == "http://localhost:5000/" && c.Type == "office"))
+                {
+                    return Task.CompletedTask;
+                }
+
+                // Bail out if we can't read an int from the 'office' claim
+                int officeNumber;
+                if (!int.TryParse(context.User.FindFirst(c => c.Issuer == "http://localhost:5000/" && c.Type == "office").Value, out officeNumber))
+                {
+                    return Task.CompletedTask;
+                }
+
+                // Finally, validate that the office number from the claim is not greater
+                // than the requirement's maximum
+                if (officeNumber <= requirement.MaximumOfficeNumber)
+                {
+                    // Mark the requirement as satisfied
+                    context.Succeed(requirement);
+                }
+
+                return Task.CompletedTask;
+            }
+        }
+
+        // A custom authorization requirement which requires office number to be below a certain value
+        internal class MaximumOfficeNumberRequirement : IAuthorizationRequirement
+        {
+            public MaximumOfficeNumberRequirement(int officeNumber)
+            {
+                MaximumOfficeNumber = officeNumber;
+            }
+
+            public int MaximumOfficeNumber { get; private set; }
         }
     }
 }
