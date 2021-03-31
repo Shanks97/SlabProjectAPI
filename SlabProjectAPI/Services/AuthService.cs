@@ -86,7 +86,6 @@ namespace SlabProjectAPI.Services
             {
                 return new ChangePasswordResponse()
                 {
-                    Success = false,
                     Errors = passwordChanged.Errors.Select(x => x.Description).ToList()
                 };
             }
@@ -180,7 +179,7 @@ namespace SlabProjectAPI.Services
 
             if (isCreated.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user1, RoleConstants.Admin);
+                await _userManager.AddToRoleAsync(user1, RoleConstants.Operator);
                 _projectDbContext.UsersInformation.Add(new Models.User
                 {
                     Enabled = true,

@@ -88,6 +88,23 @@ namespace SlabProjectAPI.Controllers
         }
 
         /// <summary>
+        /// Change password
+        /// </summary>
+        /// <param name="changePasswordRequest">model to request a new password</param>
+        /// <returns></returns>
+        [HttpPatch]
+        [Route("changePassword")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> SwitchEnableStatusForOperator([FromBody] ChangePasswordRequest changePasswordRequest)
+        {
+            var result = await _authService.ChangePassword(changePasswordRequest);
+            if (result.Success)
+                return Ok(result);
+            else
+                return BadRequest(result);
+        }
+
+        /// <summary>
         /// Admin can disable/enable the login for an Operator User by using the respective email
         /// </summary>
         /// <param name="email">Operator's email</param>
