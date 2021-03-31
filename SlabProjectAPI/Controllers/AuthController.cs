@@ -43,7 +43,7 @@ namespace SlabProjectAPI.Controllers
             {
                 var result = await _authService.RegisterUser(user);
                 if (result.Result)
-                    return Ok(result);
+                    return Created(nameof(Login), result);
                 else
                     return BadRequest(result);
             }

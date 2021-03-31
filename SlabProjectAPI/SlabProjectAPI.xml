@@ -18,6 +18,13 @@
             <param name="user">Model to request the Login</param>
             <returns></returns>
         </member>
+        <member name="M:SlabProjectAPI.Controllers.AuthController.SwitchEnableStatusForOperator(SlabProjectAPI.Domain.Requests.ChangePasswordRequest)">
+            <summary>
+            Change password
+            </summary>
+            <param name="changePasswordRequest">model to request a new password</param>
+            <returns></returns>
+        </member>
         <member name="M:SlabProjectAPI.Controllers.AuthController.SwitchEnableStatusForOperator(System.String)">
             <summary>
             Admin can disable/enable the login for an Operator User by using the respective email
