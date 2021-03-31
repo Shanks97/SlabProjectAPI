@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SlabProjectAPI.Services.Interfaces
 {
-    interface IEmailService
+    public interface IEmailService
     {
         /// <summary>
         /// Send email to the new user
