@@ -27,7 +27,7 @@ namespace SlabProjectAPI.Controllers
         }
 
         /// <summary>
-        /// Endpoint to create a project based on the model
+        /// Create a project based on the model
         /// </summary>
         /// <param name="model">Project creation model</param>
         /// <returns></returns>
@@ -56,7 +56,7 @@ namespace SlabProjectAPI.Controllers
         }
 
         /// <summary>
-        /// Endpoint to create a Task for a project using the project ID
+        /// Create a Task for a project using the project ID
         /// </summary>
         /// <param name="model">Project Task creation model</param>
         /// <returns></returns>
@@ -86,7 +86,7 @@ namespace SlabProjectAPI.Controllers
         }
 
         /// <summary>
-        /// Endoint to get a project based on its Id
+        /// Get a project based on its Id
         /// </summary>
         /// <param name="id">Project's id to find</param>
         /// <returns></returns>
@@ -102,7 +102,7 @@ namespace SlabProjectAPI.Controllers
         }
 
         /// <summary>
-        /// Endpoint to get a task based on its Id
+        /// Get a task based on its Id
         /// </summary>
         /// <param name="id">Task's id to find</param>
         /// <returns></returns>
@@ -118,7 +118,7 @@ namespace SlabProjectAPI.Controllers
         }
 
         /// <summary>
-        /// Endpoint to see all projects information
+        /// Get all projects information
         /// </summary>
         /// <returns></returns>
         [HttpGet("all")]
@@ -133,7 +133,7 @@ namespace SlabProjectAPI.Controllers
         }
 
         /// <summary>
-        /// Endpoint to get all Tasks information
+        /// Get all Tasks information
         /// </summary>
         /// <returns></returns>
         [HttpGet("allTasks")]
@@ -148,7 +148,7 @@ namespace SlabProjectAPI.Controllers
         }
 
         /// <summary>
-        /// Endpoint to update a project based on the edit model
+        /// Update a project based on the edit model
         /// </summary>
         /// <param name="model">Model for edit a project, all properties are optional, except Project's Id</param>
         /// <returns></returns>
@@ -165,7 +165,7 @@ namespace SlabProjectAPI.Controllers
         }
 
         /// <summary>
-        /// Endpoint to update a task based on the edit model
+        /// Update a task based on the edit model
         /// </summary>
         /// <param name="model">Model for edit a task, all properties are optional, except task's Id</param>
         /// <returns></returns>
@@ -198,7 +198,7 @@ namespace SlabProjectAPI.Controllers
         }
 
         /// <summary>
-        /// Complete a project if all of its Tasks are already executed
+        /// Complete a task
         /// </summary>
         /// <param name="id">Project's Id</param>
         /// <returns></returns>

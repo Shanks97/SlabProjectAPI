@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
-using System;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace SlabProjectAPI.Migrations
 {
@@ -193,6 +193,7 @@ namespace SlabProjectAPI.Migrations
                     ProjectId = table.Column<int>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: true),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
+                    Status = table.Column<string>(type: "TEXT", nullable: true),
                     ExecutionDate = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>

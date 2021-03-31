@@ -197,7 +197,7 @@ namespace SlabProjectAPI.Services
                     {
                         Errors = new List<string>()
                             {
-                                "The Execution date is out of the range between Project's Start and Finish Date "
+                                "The Execution date is not between the range between Project's Start and Finish Date "
                             }
                     };
 
@@ -360,7 +360,7 @@ namespace SlabProjectAPI.Services
                     Success = false,
                     Errors = new List<string>()
                     {
-                        "Cannot update Project with id: " + id
+                        "Cannot update task with id: " + id
                     }
                 };
             }
