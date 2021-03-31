@@ -51,6 +51,16 @@ namespace SlabProjectAPI.Services
         {
             var result1 = await ValidatePassword(changePasswordRequest.OldPassword);
             var result2 = await ValidatePassword(changePasswordRequest.NewPassword);
+            
+            if (changePasswordRequest.OldPassword == changePasswordRequest.NewPassword)
+                return new ChangePasswordResponse()
+                {
+                    Errors = new List<string>()
+                    {
+                        "New and Old Password must be different for security!"
+                    }
+                };
+
             if (result1.Any() || result2.Any())
             {
                 return new ChangePasswordResponse()
@@ -60,6 +70,7 @@ namespace SlabProjectAPI.Services
                     Success = false
                 };
             }
+           
 
             var user = await _userManager.FindByEmailAsync(changePasswordRequest.Email);
             if (user == null)
