@@ -4,21 +4,21 @@
         <name>SlabProjectAPI</name>
     </assembly>
     <members>
-        <member name="M:SlabProjectAPI.Controllers.AuthController.Register(SlabProjectAPI.Domain.Requests.UserRegistrationRequest)">
+        <member name="M:SlabProjectAPI.Controllers.AuthController.Register(SlabProject.Entity.Requests.UserRegistrationRequest)">
             <summary>
             Admin can register new users as Operator User
             </summary>
             <param name="user">The user's email</param>
             <returns></returns>
         </member>
-        <member name="M:SlabProjectAPI.Controllers.AuthController.Login(SlabProjectAPI.Domain.Requests.UserLoginRequest)">
+        <member name="M:SlabProjectAPI.Controllers.AuthController.Login(SlabProject.Entity.Requests.UserLoginRequest)">
             <summary>
             Anonymous User Login
             </summary>
             <param name="user">Model to request the Login</param>
             <returns></returns>
         </member>
-        <member name="M:SlabProjectAPI.Controllers.AuthController.SwitchEnableStatusForOperator(SlabProjectAPI.Domain.Requests.ChangePasswordRequest)">
+        <member name="M:SlabProjectAPI.Controllers.AuthController.SwitchEnableStatusForOperator(SlabProject.Entity.Requests.ChangePasswordRequest)">
             <summary>
             Change password
             </summary>
@@ -32,14 +32,14 @@
             <param name="email">Operator's email</param>
             <returns></returns>
         </member>
-        <member name="M:SlabProjectAPI.Controllers.ProjectController.CreateProject(SlabProjectAPI.Domain.Requests.CreateProjectRequest)">
+        <member name="M:SlabProjectAPI.Controllers.ProjectController.CreateProject(SlabProject.Entity.Requests.CreateProjectRequest)">
             <summary>
             Create a project based on the model
             </summary>
             <param name="model">Project creation model</param>
             <returns></returns>
         </member>
-        <member name="M:SlabProjectAPI.Controllers.ProjectController.CreateProjectTask(SlabProjectAPI.Domain.Requests.CreateTaskRequest)">
+        <member name="M:SlabProjectAPI.Controllers.ProjectController.CreateProjectTask(SlabProject.Entity.Requests.CreateTaskRequest)">
             <summary>
             Create a Task for a project using the project ID
             </summary>
@@ -72,14 +72,14 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SlabProjectAPI.Controllers.ProjectController.UpdateProject(System.Int32,SlabProjectAPI.Domain.Requests.EditProjectRequest)">
+        <member name="M:SlabProjectAPI.Controllers.ProjectController.UpdateProject(System.Int32,SlabProject.Entity.Requests.EditProjectRequest)">
             <summary>
             Update a project based on the edit model
             </summary>
             <param name="model">Model for edit a project, all properties are optional, except Project's Id</param>
             <returns></returns>
         </member>
-        <member name="M:SlabProjectAPI.Controllers.ProjectController.UpdateTask(System.Int32,SlabProjectAPI.Domain.Requests.EditTaskRequest)">
+        <member name="M:SlabProjectAPI.Controllers.ProjectController.UpdateTask(System.Int32,SlabProject.Entity.Requests.EditTaskRequest)">
             <summary>
             Update a task based on the edit model
             </summary>
@@ -113,20 +113,6 @@
             </summary>
             <param name="id">Task's Id to delete</param>
             <returns></returns>
-        </member>
-        <member name="M:SlabProjectAPI.Services.Interfaces.IEmailService.SendEmailUserCreated(System.String,System.String)">
-            <summary>
-            Send email to the new user
-            </summary>
-            <param name="email">New user email</param>
-            <param name="password">New user password</param>
-        </member>
-        <member name="M:SlabProjectAPI.Services.Interfaces.IEmailService.SendEmailProjectCompleted(System.String,SlabProjectAPI.Models.Project)">
-            <summary>
-            Send email about the project that has been completed
-            </summary>
-            <param name="email"></param>
-            <param name="project"></param>
         </member>
     </members>
 </doc>

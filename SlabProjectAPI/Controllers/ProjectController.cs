@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using SlabProjectAPI.Constants;
-using SlabProjectAPI.Domain.Requests;
-using SlabProjectAPI.Domain.Responses;
+using SlabProject.Entity.Constants;
+using SlabProject.Entity.Requests;
+using SlabProject.Entity.Responses;
 using SlabProjectAPI.Services.Interfaces;
 using System.Threading.Tasks;
 
