@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SlabProject.Business;
 using SlabProjectAPI.Configuration;
 using SlabProjectAPI.Data;
 using SlabProjectAPI.Mapper;
@@ -87,6 +88,9 @@ namespace SlabProjectAPI
                 mc.AddProfile(new ProjectProfile());
                 mc.AddProfile(new ProjectTaskProfile());
             });
+            services.AddSingleton(mapperConfig.CreateMapper());
+
+            ServiceInjector.InjectServices(services);
 
             services.AddControllers(config =>
             {
@@ -99,11 +103,6 @@ namespace SlabProjectAPI
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             });
 
-            services.AddSingleton(mapperConfig.CreateMapper());
-
-            services.AddScoped<IEmailService, EmailService>();
-            services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IProjectService, ProjectService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
