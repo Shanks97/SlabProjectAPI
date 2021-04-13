@@ -38,8 +38,6 @@ namespace SlabProjectAPI.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = RoleConstants.Admin)]
         public async Task<IActionResult> Register([FromBody] UserRegistrationRequest user)
         {
-            await EnsureBasicRoles();
-
             if (ModelState.IsValid)
             {
                 var result = await _authService.RegisterUser(user);
@@ -122,18 +120,6 @@ namespace SlabProjectAPI.Controllers
                 return BadRequest(result);
         }
 
-        private async Task EnsureBasicRoles()
-        {
-            var roles = new List<string>() { RoleConstants.Admin, RoleConstants.Operator };
-
-            foreach (var roleName in roles)
-            {
-                var role = await _roleManager.FindByNameAsync(roleName);
-                if (role == null)
-                {
-                    await _roleManager.CreateAsync(new IdentityRole { Name = roleName });
-                }
-            }
-        }
+      
     }
 }

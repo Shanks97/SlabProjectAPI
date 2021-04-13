@@ -2,13 +2,13 @@
 
 namespace SlabProject.Entity.Requests
 {
-    public class UserRegistrationRequest
-    {
+    public record UserRegistrationRequest
+    (
         [Required]
         [EmailAddress]
-        public string UserName { get; set; }
+        string UserName,
 
         [Required]
-        public string Password { get; set; }
-    }
+        string Password
+    );
 }

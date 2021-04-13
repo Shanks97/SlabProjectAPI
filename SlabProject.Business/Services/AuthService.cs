@@ -22,6 +22,7 @@ namespace SlabProjectAPI.Services
 {
     public class AuthService : IAuthService
     {
+        private static bool _dataEnsured = false;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IEmailService _emailService;
@@ -43,6 +44,7 @@ namespace SlabProjectAPI.Services
             _projectDbContext = projectDbContext;
             _jwtConfig = optionsMonitor.CurrentValue;
             _mailSettings = mailMonitor.CurrentValue;
+
         }
 
         public async Task<ChangePasswordResponse> ChangePassword(ChangePasswordRequest changePasswordRequest)
@@ -102,6 +104,8 @@ namespace SlabProjectAPI.Services
 
         public async Task<AuthResult> Login(UserLoginRequest request)
         {
+            await EnsureBasicData();
+
             var existingUser = await _userManager.FindByEmailAsync(request.Email);
 
             if (existingUser == null)
@@ -153,9 +157,10 @@ namespace SlabProjectAPI.Services
             }
         }
 
-        public async Task<AuthResult> RegisterUser(UserRegistrationRequest request)
+        public async Task<AuthResult> RegisterUser(UserRegistrationRequest request, bool sendEmail = true, bool isAdmin = false)
         {
             //EMAIL VALIDATOR
+            await EnsureBasicData();
             var existingUser = await _userManager.FindByEmailAsync(request.UserName);
 
             if (existingUser != null)
@@ -188,7 +193,7 @@ namespace SlabProjectAPI.Services
 
             if (isCreated.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user1, RoleConstants.Operator);
+                await _userManager.AddToRoleAsync(user1, isAdmin ? RoleConstants.Admin : RoleConstants.Operator);
                 _projectDbContext.UsersInformation.Add(new User
                 {
                     Enabled = true,
@@ -196,7 +201,8 @@ namespace SlabProjectAPI.Services
                 });
                 _projectDbContext.SaveChanges();
                 var jwtToken = await GenerateJwtToken(newUser);
-                _emailService.SendEmailUserCreated(request.UserName, request.Password);
+                if(sendEmail)
+                    _emailService.SendEmailUserCreated(request.UserName, request.Password);
                 return new RegistrationResponse()
                 {
                     Result = true,
@@ -294,6 +300,29 @@ namespace SlabProjectAPI.Services
                     passErrors.AddRange(isValid.Errors.Select(x => x.Description));
             }
             return passErrors;
+        }
+
+        private async Task EnsureBasicData()
+        {
+            if (_dataEnsured) return;
+            _dataEnsured = true;
+            var roles = new List<string>() { RoleConstants.Admin, RoleConstants.Operator };
+
+            foreach (var roleName in roles)
+            {
+                var role = await _roleManager.FindByNameAsync(roleName);
+                if (role == null)
+                {
+                    await _roleManager.CreateAsync(new IdentityRole { Name = roleName });
+                }
+            }
+
+            var user = await _userManager.FindByEmailAsync(_mailSettings.Mail);
+            if(user == null)
+            {
+                UserRegistrationRequest userAdmin = new(_mailSettings.Mail, _mailSettings.Password);
+                await RegisterUser(userAdmin, isAdmin: true);
+            }
         }
 
 

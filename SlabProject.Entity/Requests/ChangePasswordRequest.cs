@@ -2,15 +2,15 @@
 
 namespace SlabProject.Entity.Requests
 {
-    public class ChangePasswordRequest
-    {
+    public record ChangePasswordRequest
+    (
         [Required]
-        public string Email { get; set; }
+        string Email,
 
         [Required]
-        public string OldPassword { get; set; }
+        string OldPassword,
 
         [Required]
-        public string NewPassword { get; set; }
-    }
+        string NewPassword
+    );
 }

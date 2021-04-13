@@ -3,18 +3,18 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SlabProject.Entity.Requests
 {
-    public class CreateProjectRequest
-    {
+    public record CreateProjectRequest
+    (
         [Required]
-        public string Name { get; set; }
+        string Name,
 
         [Required]
-        public string Description { get; set; }
+        string Description,
 
         [Required]
-        public DateTime StartDate { get; set; }
+        DateTime StartDate,
 
         [Required]
-        public DateTime FinishDate { get; set; }
-    }
+        DateTime FinishDate
+    );
 }

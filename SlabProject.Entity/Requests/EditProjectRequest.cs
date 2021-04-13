@@ -2,10 +2,10 @@
 
 namespace SlabProject.Entity.Requests
 {
-    public class EditProjectRequest
-    {
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public DateTime? FinishDate { get; set; }
-    }
+    public record EditProjectRequest
+    (
+        string Name,
+        string Description,
+        DateTime? FinishDate
+    );
 }

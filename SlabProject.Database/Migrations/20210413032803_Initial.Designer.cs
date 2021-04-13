@@ -6,10 +6,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SlabProjectAPI.Data;
 
-namespace SlabProjectAPI.Migrations
+namespace SlabProject.Database.Migrations
 {
     [DbContext(typeof(ProjectDbContext))]
-    [Migration("20210331004639_Initial")]
+    [Migration("20210413032803_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -214,7 +214,7 @@ namespace SlabProjectAPI.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("SlabProjectAPI.Models.Project", b =>
+            modelBuilder.Entity("SlabProject.Entity.Models.Project", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -243,7 +243,7 @@ namespace SlabProjectAPI.Migrations
                     b.ToTable("Projects");
                 });
 
-            modelBuilder.Entity("SlabProjectAPI.Models.ProjectTask", b =>
+            modelBuilder.Entity("SlabProject.Entity.Models.ProjectTask", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -271,7 +271,7 @@ namespace SlabProjectAPI.Migrations
                     b.ToTable("Tasks");
                 });
 
-            modelBuilder.Entity("SlabProjectAPI.Models.User", b =>
+            modelBuilder.Entity("SlabProject.Entity.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -339,9 +339,9 @@ namespace SlabProjectAPI.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SlabProjectAPI.Models.ProjectTask", b =>
+            modelBuilder.Entity("SlabProject.Entity.Models.ProjectTask", b =>
                 {
-                    b.HasOne("SlabProjectAPI.Models.Project", "Project")
+                    b.HasOne("SlabProject.Entity.Models.Project", "Project")
                         .WithMany("Tasks")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -350,7 +350,7 @@ namespace SlabProjectAPI.Migrations
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("SlabProjectAPI.Models.Project", b =>
+            modelBuilder.Entity("SlabProject.Entity.Models.Project", b =>
                 {
                     b.Navigation("Tasks");
                 });

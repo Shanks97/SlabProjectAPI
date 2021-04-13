@@ -2,11 +2,11 @@
 
 namespace SlabProject.Entity.Responses
 {
-    public class ChangePasswordResponse
+    public record ChangePasswordResponse
     {
-        public bool Success { get; set; }
-        public List<string> NewPasswordErrors { get; set; }
-        public List<string> OldPasswordErrors { get; set; }
-        public List<string> Errors { get; set; }
+        public bool Success { get; init; }
+        public List<string> NewPasswordErrors { get; init; }
+        public List<string> OldPasswordErrors { get; init; }
+        public List<string> Errors { get; init; }
     }
 }

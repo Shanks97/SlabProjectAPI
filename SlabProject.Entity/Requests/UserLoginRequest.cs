@@ -2,12 +2,12 @@
 
 namespace SlabProject.Entity.Requests
 {
-    public class UserLoginRequest
-    {
+    public record UserLoginRequest
+    (
         [Required]
-        public string Email { get; set; }
+        string Email,
 
         [Required]
-        public string Password { get; set; }
-    }
+        string Password
+    );
 }

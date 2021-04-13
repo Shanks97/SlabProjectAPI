@@ -2,10 +2,10 @@
 
 namespace SlabProject.Entity
 {
-    public class AuthResult
+    public record AuthResult
     {
-        public string Token { get; set; }
-        public bool Result { get; set; }
-        public List<string> Errors { get; set; }
+        public string Token { get; init; }
+        public bool Result { get; init; }
+        public List<string> Errors { get; init; }
     }
 }
