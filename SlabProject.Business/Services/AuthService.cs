@@ -73,7 +73,7 @@ namespace SlabProjectAPI.Services
 
 
             var user = await _userManager.FindByEmailAsync(changePasswordRequest.Email);
-            if (user == null)
+            if (user is null)
             {
                 return new ChangePasswordResponse()
                 {
@@ -108,7 +108,7 @@ namespace SlabProjectAPI.Services
 
             var existingUser = await _userManager.FindByEmailAsync(request.Email);
 
-            if (existingUser == null)
+            if (existingUser is null)
             {
                 return new RegistrationResponse()
                 {
@@ -163,7 +163,7 @@ namespace SlabProjectAPI.Services
             await EnsureBasicData();
             var existingUser = await _userManager.FindByEmailAsync(request.UserName);
 
-            if (existingUser != null)
+            if (existingUser is not null)
             {
                 return new RegistrationResponse()
                 {
@@ -219,7 +219,7 @@ namespace SlabProjectAPI.Services
         public async Task<BaseRequestResponse<User>> SwitchOperatorAuthentication(string email)
         {
             var existingUser = await _userManager.FindByEmailAsync(email);
-            if (existingUser != null)
+            if (existingUser is not null)
             {
                 var isOperator = await _userManager.IsInRoleAsync(existingUser, RoleConstants.Operator);
                 if (isOperator)
@@ -311,14 +311,12 @@ namespace SlabProjectAPI.Services
             foreach (var roleName in roles)
             {
                 var role = await _roleManager.FindByNameAsync(roleName);
-                if (role == null)
-                {
+                if (role is null)
                     await _roleManager.CreateAsync(new IdentityRole { Name = roleName });
-                }
             }
 
             var user = await _userManager.FindByEmailAsync(_mailSettings.Mail);
-            if(user == null)
+            if(user is null)
             {
                 UserRegistrationRequest userAdmin = new(_mailSettings.Mail, _mailSettings.Password);
                 await RegisterUser(userAdmin, isAdmin: true);

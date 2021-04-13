@@ -36,7 +36,7 @@ namespace SlabProjectAPI.Services
         public async Task<BaseRequestResponse<bool>> CompleteProject(int id)
         {
             var project = _dbContext.Projects.Include(x => x.Tasks).FirstOrDefault(x => x.Id == id);
-            if (project != null)
+            if (project is not null)
             {
                 if (project.Tasks.Any(x => x.Status == StatusConstants.InProcess))
                 {
@@ -255,7 +255,7 @@ namespace SlabProjectAPI.Services
         public BaseRequestResponse<bool> DeleteTask(int id)
         {
             var task = _dbContext.Tasks.FirstOrDefault(x => x.Id == id);
-            if (task != null)
+            if (task is not null)
             {
                 _dbContext.Tasks.Remove(task);
                 _dbContext.SaveChanges();
@@ -283,7 +283,7 @@ namespace SlabProjectAPI.Services
         {
             var project = _dbContext.Projects.Include(x => x.Tasks).FirstOrDefault(x => x.Id == id);
 
-            if (project != null)
+            if (project is not null)
             {
                 if (project.Tasks.Any(x => x.ExecutionDate > editProjectRequest.FinishDate))
                 {
@@ -324,7 +324,7 @@ namespace SlabProjectAPI.Services
         public BaseRequestResponse<bool> EditTask(int id, EditTaskRequest editTaskRequest)
         {
             var task = _dbContext.Tasks.Include(x => x.Project).FirstOrDefault(x => x.Id == id);
-            if (task != null)
+            if (task is not null)
             {
                 var project = task.Project;
                 if (editTaskRequest.ExecutionDate.HasValue)
@@ -369,7 +369,7 @@ namespace SlabProjectAPI.Services
         public BaseRequestResponse<Project> GetProject(int id)
         {
             var project = _dbContext.Projects.Include(x => x.Tasks).AsNoTracking().FirstOrDefault(x => x.Id == id);
-            if (project != null)
+            if (project is not null)
             {
                 return new BaseRequestResponse<Project>()
                 {
