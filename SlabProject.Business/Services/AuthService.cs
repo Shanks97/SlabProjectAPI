@@ -44,7 +44,6 @@ namespace SlabProjectAPI.Services
             _projectDbContext = projectDbContext;
             _jwtConfig = optionsMonitor.CurrentValue;
             _mailSettings = mailMonitor.CurrentValue;
-
         }
 
         public async Task<ChangePasswordResponse> ChangePassword(ChangePasswordRequest changePasswordRequest)
@@ -70,7 +69,6 @@ namespace SlabProjectAPI.Services
                     Success = false
                 };
             }
-
 
             var user = await _userManager.FindByEmailAsync(changePasswordRequest.Email);
             if (user is null)
@@ -144,17 +142,14 @@ namespace SlabProjectAPI.Services
                     Token = jwtToken
                 };
             }
-            else
+            return new RegistrationResponse()
             {
-                return new RegistrationResponse()
-                {
-                    Result = false,
-                    Errors = new List<string>()
+                Result = false,
+                Errors = new List<string>()
                         {
                             "Invalid authentication request"
                         }
-                };
-            }
+            };
         }
 
         public async Task<AuthResult> RegisterUser(UserRegistrationRequest request, bool sendEmail = true, bool isAdmin = false)
@@ -201,7 +196,7 @@ namespace SlabProjectAPI.Services
                 });
                 _projectDbContext.SaveChanges();
                 var jwtToken = await GenerateJwtToken(newUser);
-                if(sendEmail)
+                if (sendEmail)
                     _emailService.SendEmailUserCreated(request.UserName, request.Password);
                 return new RegistrationResponse()
                 {
@@ -234,16 +229,13 @@ namespace SlabProjectAPI.Services
                         Success = true
                     };
                 }
-                else
+                return new BaseRequestResponse<User>()
                 {
-                    return new BaseRequestResponse<User>()
-                    {
-                        Errors = new List<string>()
+                    Errors = new List<string>()
                         {
                             "User is not an operator"
                         }
-                    };
-                }
+                };
             }
             return new BaseRequestResponse<User>()
             {
@@ -258,9 +250,9 @@ namespace SlabProjectAPI.Services
         {
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new (JwtRegisteredClaimNames.Sub, user.UserName),
+                new (JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new (ClaimTypes.NameIdentifier, user.Id),
             };
 
             // Get User roles and add them to claims
@@ -316,13 +308,11 @@ namespace SlabProjectAPI.Services
             }
 
             var user = await _userManager.FindByEmailAsync(_mailSettings.Mail);
-            if(user is null)
+            if (user is null)
             {
                 UserRegistrationRequest userAdmin = new(_mailSettings.Mail, _mailSettings.Password);
                 await RegisterUser(userAdmin, isAdmin: true);
             }
         }
-
-
     }
 }

@@ -15,13 +15,10 @@ using SlabProject.Business;
 using SlabProjectAPI.Configuration;
 using SlabProjectAPI.Data;
 using SlabProjectAPI.Mapper;
-using SlabProjectAPI.Services;
-using SlabProjectAPI.Services.Interfaces;
 using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SlabProjectAPI
 {
@@ -102,7 +99,6 @@ namespace SlabProjectAPI
             {
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             });
-
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

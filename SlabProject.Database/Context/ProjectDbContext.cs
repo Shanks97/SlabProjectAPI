@@ -18,7 +18,6 @@ namespace SlabProjectAPI.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            //builder.Entity<Project>().HasMany(x => x.Tasks).WithOne(x => x.Project);
         }
     }
 }

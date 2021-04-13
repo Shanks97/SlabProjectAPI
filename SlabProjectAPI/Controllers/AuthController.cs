@@ -8,7 +8,6 @@ using SlabProject.Entity.Responses;
 using SlabProjectAPI.Services.Interfaces;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using SlabProject.Entity;
 
 namespace SlabProjectAPI.Controllers
 
@@ -119,7 +118,5 @@ namespace SlabProjectAPI.Controllers
             else
                 return BadRequest(result);
         }
-
-      
     }
 }

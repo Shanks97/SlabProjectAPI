@@ -25,6 +25,7 @@ namespace SlabProjectAPI.Services.Interfaces
         BaseRequestResponse<bool> EditTask(int id, EditTaskRequest editTaskRequest);
 
         BaseRequestResponse<bool> DeleteTask(int id);
+
         BaseRequestResponse<bool> CompleteTask(int id);
 
         BaseRequestResponse<ProjectTask> GetTask(int id);
