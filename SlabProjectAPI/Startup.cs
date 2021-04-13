@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SlabProject.Business;
 using SlabProjectAPI.Configuration;
 using SlabProjectAPI.Data;
 using SlabProjectAPI.Mapper;
@@ -87,6 +88,9 @@ namespace SlabProjectAPI
                 mc.AddProfile(new ProjectProfile());
                 mc.AddProfile(new ProjectTaskProfile());
             });
+            services.AddSingleton(mapperConfig.CreateMapper());
+
+            ServiceInjector.InjectServices(services);
 
             services.AddControllers(config =>
             {
@@ -99,11 +103,6 @@ namespace SlabProjectAPI
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             });
 
-            services.AddSingleton(mapperConfig.CreateMapper());
-
-            services.AddScoped<IEmailService, EmailService>();
-            services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IProjectService, ProjectService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -132,46 +131,6 @@ namespace SlabProjectAPI
             {
                 endpoints.MapControllers();
             });
-        }
-
-        internal class MaximumOfficeNumberAuthorizationHandler : AuthorizationHandler<MaximumOfficeNumberRequirement>
-        {
-            protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, MaximumOfficeNumberRequirement requirement)
-            {
-                // Bail out if the office number claim isn't present
-                if (!context.User.HasClaim(c => c.Issuer == "http://localhost:5000/" && c.Type == "office"))
-                {
-                    return Task.CompletedTask;
-                }
-
-                // Bail out if we can't read an int from the 'office' claim
-                int officeNumber;
-                if (!int.TryParse(context.User.FindFirst(c => c.Issuer == "http://localhost:5000/" && c.Type == "office").Value, out officeNumber))
-                {
-                    return Task.CompletedTask;
-                }
-
-                // Finally, validate that the office number from the claim is not greater
-                // than the requirement's maximum
-                if (officeNumber <= requirement.MaximumOfficeNumber)
-                {
-                    // Mark the requirement as satisfied
-                    context.Succeed(requirement);
-                }
-
-                return Task.CompletedTask;
-            }
-        }
-
-        // A custom authorization requirement which requires office number to be below a certain value
-        internal class MaximumOfficeNumberRequirement : IAuthorizationRequirement
-        {
-            public MaximumOfficeNumberRequirement(int officeNumber)
-            {
-                MaximumOfficeNumber = officeNumber;
-            }
-
-            public int MaximumOfficeNumber { get; private set; }
         }
     }
 }
