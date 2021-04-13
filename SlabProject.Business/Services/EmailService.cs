@@ -23,7 +23,6 @@ namespace SlabProjectAPI.Services
             string subject = "User Created";
             string body = $"your email is: {email} & your password is: {password}";
             SendEmail(fromAddress, toAddress, subject, body);
-
         }
 
         public void SendEmailProjectCompleted(string email, Project project)
@@ -33,7 +32,6 @@ namespace SlabProjectAPI.Services
             string subject = "Project Completed";
             string body = $"The Project {project.Name} with id: {project.Id} has been completed, congratz!";
             SendEmail(fromAddress, toAddress, subject, body);
-
         }
 
         private void SendEmail(MailAddress from, MailAddress to, string subject, string body)
