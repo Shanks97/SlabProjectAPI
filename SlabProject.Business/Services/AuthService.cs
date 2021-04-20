@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SlabProject.Entity;
@@ -29,6 +30,7 @@ namespace SlabProjectAPI.Services
         private readonly ProjectDbContext _projectDbContext;
         private readonly JwtConfig _jwtConfig;
         private readonly MailConfig _mailSettings;
+        private readonly ILogger<AuthService> _logger;
 
         public AuthService(
             UserManager<IdentityUser> userManager,
@@ -36,7 +38,8 @@ namespace SlabProjectAPI.Services
             ProjectDbContext projectDbContext,
             IEmailService emailService,
             IOptionsMonitor<JwtConfig> optionsMonitor,
-            IOptionsMonitor<MailConfig> mailMonitor)
+            IOptionsMonitor<MailConfig> mailMonitor,
+            ILogger<AuthService> logger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -44,6 +47,7 @@ namespace SlabProjectAPI.Services
             _projectDbContext = projectDbContext;
             _jwtConfig = optionsMonitor.CurrentValue;
             _mailSettings = mailMonitor.CurrentValue;
+            _logger = logger;
         }
 
         public async Task<ChangePasswordResponse> ChangePassword(ChangePasswordRequest changePasswordRequest)
@@ -105,7 +109,7 @@ namespace SlabProjectAPI.Services
             await EnsureBasicData();
 
             var existingUser = await _userManager.FindByEmailAsync(request.Email);
-
+            _logger.LogInformation("Login request by " + request.Email);
             if (existingUser is null)
             {
                 return new RegistrationResponse()
@@ -261,7 +265,7 @@ namespace SlabProjectAPI.Services
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtConfig.Secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddDays(1);
+            var expires = DateTime.Now.AddHours(1);
 
             var token = new JwtSecurityToken(
                 claims: claims,

@@ -12,8 +12,4 @@
     <ProjectReference Include="..\SlabProject.Entity\SlabProject.Entity.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Repositories\" />
-  </ItemGroup>
-
 </Project>
